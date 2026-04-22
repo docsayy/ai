@@ -3,137 +3,210 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Note AI Login</title>
+  <title>My note companion</title>
 
   <style>
     :root {
       --bg: #f7f8fc;
-      --card: rgba(255,255,255,0.75);
-      --text: #111;
-      --muted: #666;
+      --card: rgba(255,255,255,0.82);
+      --text: #111827;
+      --muted: #6b7280;
       --btn: linear-gradient(135deg,#5b7cff,#7a5cff);
+      --input-border: #d7def8;
+      --input-bg: #ffffff;
     }
 
     body.dark {
       --bg: #0b0f1a;
-      --card: rgba(20,25,40,0.7);
-      --text: #f0f4ff;
+      --card: rgba(20,25,40,0.78);
+      --text: #f3f6ff;
       --muted: #9aa5b5;
       --btn: linear-gradient(135deg,#6f8cff,#8e63ff);
+      --input-border: rgba(255,255,255,0.1);
+      --input-bg: rgba(255,255,255,0.05);
     }
+
+    * { box-sizing: border-box; }
 
     body {
-      margin:0;
-      font-family: system-ui;
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: var(--bg);
       color: var(--text);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      height:100vh;
-      overflow:hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+      position: relative;
     }
 
-    /* subtle floating blobs */
     .blob {
-      position:absolute;
-      border-radius:50%;
-      filter: blur(60px);
-      opacity:0.4;
-      animation: float 20s infinite alternate ease-in-out;
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(70px);
+      opacity: 0.32;
+      animation: float 18s infinite alternate ease-in-out;
+      pointer-events: none;
     }
 
-    .blob1 { width:300px;height:300px;background:#6f8cff; top:-50px; left:-50px; }
-    .blob2 { width:250px;height:250px;background:#00d0ff; bottom:-50px; right:-50px; }
+    .blob1 {
+      width: 280px;
+      height: 280px;
+      background: #6f8cff;
+      top: -40px;
+      left: -50px;
+    }
+
+    .blob2 {
+      width: 240px;
+      height: 240px;
+      background: #00d0ff;
+      bottom: -40px;
+      right: -50px;
+      animation-duration: 22s;
+    }
 
     @keyframes float {
-      0% { transform: translate(0,0); }
-      100% { transform: translate(40px,-40px); }
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(36px, -34px); }
     }
 
     .card {
-      position:relative;
-      z-index:2;
-      width:320px;
-      padding:25px;
-      border-radius:20px;
+      position: relative;
+      z-index: 2;
+      width: min(340px, calc(100vw - 28px));
+      padding: 24px 20px 18px;
+      border-radius: 22px;
       background: var(--card);
-      backdrop-filter: blur(20px);
-      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 18px 42px rgba(0,0,0,0.16);
+      border: 1px solid rgba(255,255,255,0.12);
     }
 
-    h2 { margin:0 0 10px; }
+    h2 {
+      margin: 0 0 10px;
+      font-size: 28px;
+      letter-spacing: -0.03em;
+    }
+
+    .sub {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .field {
+      margin-top: 10px;
+    }
 
     input {
-      width:100%;
-      padding:12px;
-      margin-top:10px;
-      border-radius:12px;
-      border:1px solid #ccc;
-      font-size:15px;
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--input-border);
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 15px;
+      display: block;
+      outline: none;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    input:focus {
+      border-color: rgba(91,124,255,0.55);
+      box-shadow: 0 0 0 4px rgba(91,124,255,0.12);
+    }
+
+    input::placeholder {
+      color: var(--muted);
     }
 
     button {
-      width:100%;
-      padding:12px;
-      margin-top:15px;
-      border:none;
-      border-radius:12px;
+      width: 100%;
+      padding: 12px;
+      margin-top: 14px;
+      border: none;
+      border-radius: 12px;
       background: var(--btn);
-      color:white;
-      font-size:15px;
-      cursor:pointer;
+      color: white;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.16s ease, opacity 0.18s ease;
     }
 
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+
     .msg {
-      margin-top:10px;
-      font-size:14px;
-      color:red;
-      min-height:18px;
+      margin-top: 10px;
+      font-size: 14px;
+      min-height: 18px;
+      color: #ef4444;
+    }
+
+    @media (max-width: 420px) {
+      .card {
+        padding: 22px 16px 16px;
+        border-radius: 18px;
+      }
+
+      h2 { font-size: 25px; }
     }
   </style>
 </head>
-
 <body>
+  <div class="blob blob1"></div>
+  <div class="blob blob2"></div>
 
-<div class="blob blob1"></div>
-<div class="blob blob2"></div>
+  <div class="card">
+    <h2>Login</h2>
+    <p class="sub">Enter your username and password to continue.</p>
 
-<div class="card">
-  <h2>Login</h2>
-  <input id="user" placeholder="Username">
-  <input id="pass" type="password" placeholder="Password">
-  <button onclick="login()">Enter</button>
-  <div class="msg" id="msg"></div>
-</div>
+    <div class="field">
+      <input id="user" placeholder="Username" autocomplete="username" onkeydown="handleKey(event)">
+    </div>
 
-<script>
-  // auto day/night
-  function setTheme() {
-    const h = new Date().getHours();
-    document.body.classList.toggle('dark', h >= 19 || h < 7);
-  }
-  setTheme();
+    <div class="field">
+      <input id="pass" type="password" placeholder="Password" autocomplete="current-password" onkeydown="handleKey(event)">
+    </div>
 
-  function login() {
-    const u = document.getElementById('user').value.trim();
-    const p = document.getElementById('pass').value;
-    const msg = document.getElementById('msg');
+    <button onclick="login()">Login</button>
+    <div class="msg" id="msg"></div>
+  </div>
 
-    if (u === "msayyar" && p === "@Ahmad2020") {
-      msg.style.color = "green";
-      msg.textContent = "Access granted";
-
-      setTimeout(() => {
-        window.location.href = "app.html";
-      }, 800);
-
-    } else {
-      msg.style.color = "red";
-      msg.textContent = "Incorrect username or password";
+  <script>
+    function setTheme() {
+      const h = new Date().getHours();
+      document.body.classList.toggle('dark', h >= 19 || h < 7);
     }
-  }
-</script>
 
+    setTheme();
+
+    function handleKey(event) {
+      if (event.key === 'Enter') {
+        login();
+      }
+    }
+
+    function login() {
+      const u = document.getElementById('user').value.trim();
+      const p = document.getElementById('pass').value;
+      const msg = document.getElementById('msg');
+
+      if (u === 'msayyar' && p === '@Ahmad2020') {
+        msg.style.color = '#16a34a';
+        msg.textContent = 'Access granted';
+        setTimeout(() => {
+          window.location.href = 'app.html';
+        }, 700);
+      } else {
+        msg.style.color = '#ef4444';
+        msg.textContent = 'Incorrect username or password';
+      }
+    }
+  </script>
 </body>
 </html>
