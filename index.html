@@ -116,7 +116,7 @@
   <div class="app">
     <div class="header">
       <h1>My AI Chat</h1>
-      <p>Personal chat app with GitHub Pages + Cloudflare Worker</p>
+      <p>Personal chat app</p>
     </div>
 
     <div id="chat">
@@ -129,7 +129,7 @@
     </div>
 
     <div class="note">
-      Keep patient identifiers out of this unless you are fully allowed to use external AI tools for that content.
+      Personal tool. Do not paste sensitive patient identifiers unless you are explicitly permitted to use external AI tools for that content.
     </div>
   </div>
 
@@ -138,8 +138,7 @@
     const promptBox = document.getElementById("prompt");
     const sendBtn = document.getElementById("sendBtn");
 
-    // Replace this after you deploy your worker
-    const API_URL = "https://YOUR-WORKER.your-subdomain.workers.dev/chat";
+    const API_URL = "https://my-ai-chat-worker.msayan92.workers.dev/chat";
 
     const messages = [
       { role: "system", content: "You are a helpful assistant." }
