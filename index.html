@@ -5,57 +5,96 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
-      font-family: Arial;
+      font-family: Arial, sans-serif;
       max-width: 800px;
       margin: auto;
       padding: 20px;
     }
     textarea {
       width: 100%;
-      height: 200px;
+      height: 220px;
       font-size: 16px;
       padding: 10px;
+      box-sizing: border-box;
     }
     button {
       padding: 10px 20px;
       margin-top: 10px;
       font-size: 16px;
+      cursor: pointer;
+    }
+    .status {
+      margin-top: 12px;
+      color: #555;
     }
     pre {
       background: #f4f4f4;
-      padding: 10px;
+      padding: 12px;
       white-space: pre-wrap;
+      border-radius: 8px;
     }
   </style>
 </head>
-
 <body>
+  <h2>Note AI</h2>
 
-<h2>🧠 Note AI</h2>
+  <textarea id="input" placeholder="Paste your note..."></textarea>
+  <br>
+  <button id="fixBtn" onclick="send()">Fix Note</button>
 
-<textarea id="input" placeholder="Paste your note..."></textarea>
-<br>
-<button onclick="send()">Fix Note</button>
+  <div class="status" id="status"></div>
 
-<h3>Output:</h3>
-<pre id="output"></pre>
+  <h3>Output:</h3>
+  <pre id="output"></pre>
 
-<script>
-async function send() {
-  const text = document.getElementById("input").value;
+  <script>
+    async function send() {
+      const text = document.getElementById("input").value.trim();
+      const output = document.getElementById("output");
+      const status = document.getElementById("status");
+      const btn = document.getElementById("fixBtn");
 
-  const res = await fetch("https://ai.homestream.online/fix-note", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ text })
-  });
+      if (!text) {
+        status.textContent = "Please paste a note first.";
+        output.textContent = "";
+        return;
+      }
 
-  const data = await res.json();
-  document.getElementById("output").textContent = data.output;
-}
-</script>
+      btn.disabled = true;
+      status.textContent = "Working...";
+      output.textContent = "";
 
+      try {
+        const res = await fetch("https://ai.homestream.online/fix-note", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ text })
+        });
+
+        const raw = await res.text();
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${raw}`);
+        }
+
+        let data;
+        try {
+          data = JSON.parse(raw);
+        } catch (e) {
+          throw new Error("Response was not valid JSON: " + raw);
+        }
+
+        output.textContent = data.output || "No output returned.";
+        status.textContent = "Done.";
+      } catch (err) {
+        status.textContent = "Request failed.";
+        output.textContent = err.message;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+  </script>
 </body>
 </html>
