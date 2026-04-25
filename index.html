@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Puter AI Chat</title>
+  <script src="https://js.puter.com/v2/"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, Arial, sans-serif;
+      background: #f3f6fb;
+      color: #111827;
+    }
+    .wrap {
+      max-width: 800px;
+      margin: auto;
+      padding: 16px;
+    }
+    h1 {
+      margin: 10px 0;
+      font-size: 24px;
+    }
+    .chat {
+      background: white;
+      border-radius: 18px;
+      padding: 14px;
+      min-height: 65vh;
+      box-shadow: 0 8px 28px rgba(0,0,0,.08);
+      overflow-y: auto;
+    }
+    .msg {
+      padding: 12px 14px;
+      border-radius: 14px;
+      margin: 10px 0;
+      white-space: pre-wrap;
+      line-height: 1.45;
+    }
+    .user {
+      background: #dbeafe;
+      margin-left: 15%;
+    }
+    .ai {
+      background: #f3f4f6;
+      margin-right: 15%;
+    }
+    .bar {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    textarea {
+      flex: 1;
+      min-height: 54px;
+      border-radius: 14px;
+      border: 1px solid #cbd5e1;
+      padding: 12px;
+      font-size: 16px;
+      resize: vertical;
+    }
+    button, select {
+      border: none;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 15px;
+    }
+    button {
+      background: #2563eb;
+      color: white;
+      font-weight: 700;
+    }
+    button:disabled {
+      opacity: .5;
+    }
+    select {
+      background: white;
+      border: 1px solid #cbd5e1;
+    }
+    .top {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .small {
+      color: #6b7280;
+      font-size: 13px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <h1>Private AI Chat</h1>
+
+    <div class="top">
+      <select id="model">
+        <option value="gpt-5.4-nano">GPT 5.4 Nano</option>
+        <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</option>
+      </select>
+
+      <button onclick="signIn()">Sign in</button>
+      <button onclick="clearChat()">Clear</button>
+      <span id="status" class="small">Ready</span>
+    </div>
+
+    <div id="chat" class="chat">
+      <div class="msg ai">Ask me anything.</div>
+    </div>
+
+    <div class="bar">
+      <textarea id="input" placeholder="Type your question..."></textarea>
+      <button id="sendBtn" onclick="askAI()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("input");
+    const sendBtn = document.getElementById("sendBtn");
+    const statusEl = document.getElementById("status");
+    const modelEl = document.getElementById("model");
+
+    const history = [];
+
+    function addMsg(text, who) {
+      const div = document.createElement("div");
+      div.className = "msg " + who;
+      div.textContent = text;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+      return div;
+    }
+
+    function setStatus(text) {
+      statusEl.textContent = text;
+    }
+
+    async function signIn() {
+      try {
+        setStatus("Signing in...");
+        await puter.auth.signIn();
+        const user = await puter.auth.getUser();
+        setStatus("Signed in as " + (user?.username || "Puter user"));
+      } catch (err) {
+        setStatus("Sign in failed");
+        alert(err.message || err);
+      }
+    }
+
+    async function askAI() {
+      const question = input.value.trim();
+      if (!question) return;
+
+      input.value = "";
+      sendBtn.disabled = true;
+
+      addMsg(question, "user");
+      const aiBox = addMsg("", "ai");
+
+      history.push({
+        role: "user",
+        content: question
+      });
+
+      try {
+        setStatus("Thinking...");
+
+        const model = modelEl.value;
+
+        const response = await puter.ai.chat(history, {
+          model: model,
+          stream: true
+        });
+
+        let answer = "";
+
+        for await (const part of response) {
+          const text = part?.text || "";
+          answer += text;
+          aiBox.textContent = answer;
+          chat.scrollTop = chat.scrollHeight;
+        }
+
+        if (!answer.trim()) {
+          aiBox.textContent = "No answer returned. Try signing in first or switch model.";
+        }
+
+        history.push({
+          role: "assistant",
+          content: answer
+        });
+
+        setStatus("Ready");
+
+      } catch (err) {
+        console.error(err);
+        aiBox.textContent =
+          "Error: " + (err?.message || JSON.stringify(err) || err);
+        setStatus("Error");
+      }
+
+      sendBtn.disabled = false;
+      input.focus();
+    }
+
+    function clearChat() {
+      history.length = 0;
+      chat.innerHTML = '<div class="msg ai">Chat cleared. Ask me anything.</div>';
+      setStatus("Ready");
+    }
+
+    input.addEventListener("keydown", function(e) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        askAI();
+      }
+    });
+  </script>
+</body>
+</html>
