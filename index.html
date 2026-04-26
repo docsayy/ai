@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Medical AI Note Helper</title>
+
+  <script src="https://js.puter.com/v2/"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f7fb;
+      color: #1f2937;
+    }
+
+    header {
+      background: #111827;
+      color: white;
+      padding: 18px;
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 16px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 200px;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #d1d5db;
+      font-size: 15px;
+      margin-top: 8px;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      color: white;
+      background: #2563eb;
+    }
+
+    .green { background: #16a34a; }
+    .purple { background: #7c3aed; }
+
+    .status {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #6b7280;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>Medical AI Note Helper</header>
+
+<div class="container">
+
+  <div class="card">
+    <b>Input</b>
+    <textarea id="inputText" placeholder="Paste rough clinical text..."></textarea>
+
+    <div class="buttons">
+      <button onclick="runPreset('fixNote')">Fix Note</button>
+      <button class="green" onclick="runPreset('hpi')">HPI</button>
+      <button class="purple" onclick="runPreset('ap')">Assessment & Plan</button>
+    </div>
+
+    <div id="status" class="status"></div>
+  </div>
+
+  <div class="card">
+    <b>Output</b>
+    <textarea id="outputText"></textarea>
+  </div>
+
+</div>
+
+<script>
+
+const presets = {
+
+fixNote: `
+Fix grammar, spelling, clarity, and medical documentation style.
+
+Rules:
+- Preserve meaning
+- Do NOT add or remove facts
+- Improve flow and professionalism
+- Correct obvious medical wording errors
+
+Return only corrected note.
+`,
+
+hpi: `
+You are an internal medicine physician writing an HPI.
+
+Task:
+Convert the text into a structured HPI.
+
+Structure (adapt if data missing):
+1. Chief complaint + duration
+2. Symptom analysis (location, severity, timing, associated symptoms)
+3. ED / prior course (labs, imaging, treatments if provided)
+4. Current status
+
+Rules:
+- DO NOT invent data
+- DO NOT add negatives unless clearly implied
+- Expand symptom abbreviations (SOB → shortness of breath)
+- Keep diagnosis abbreviations (HTN, CAD, CKD)
+
+If key data missing, briefly mention:
+"Additional history needed: ..."
+
+Return only HPI in paragraph form (no bullets).
+`,
+
+ap: `
+You are an internal medicine physician writing Assessment & Plan.
+
+Task:
+Create a problem-based Assessment and Plan.
+
+Rules:
+- DO NOT invent labs, vitals, diagnoses, or treatments
+- Only use given data
+- Identify key problems
+
+For each problem include:
+• Brief explanation
+• Supporting data (if available)
+• Plan:
+   - Diagnostics
+   - Treatment
+   - Monitoring
+
+Also:
+- Flag dangerous possibilities if relevant
+- Mention missing critical data briefly
+
+Format:
+Problem-based (no numbering required)
+
+Return only Assessment & Plan.
+`
+
+};
+
+async function runPreset(type) {
+  const input = document.getElementById("inputText").value.trim();
+  const output = document.getElementById("outputText");
+  const status = document.getElementById("status");
+
+  if (!input) {
+    status.innerText = "Enter text first.";
+    return;
+  }
+
+  status.innerText = "Working...";
+  output.value = "";
+
+  const prompt = presets[type] + "\n\nTEXT:\n" + input;
+
+  try {
+    const res = await puter.ai.chat(prompt, {
+      model: "gpt-5.4-nano",
+      temperature: 0.2
+    });
+
+    output.value =
+      res?.message?.content ||
+      res?.text ||
+      "No response.";
+
+    status.innerText = "Done.";
+  } catch (e) {
+    console.error(e);
+    status.innerText = "Error.";
+    output.value = "Something went wrong.";
+  }
+}
+
+</script>
+
+</body>
+</html>
