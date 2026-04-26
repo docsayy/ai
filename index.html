@@ -143,32 +143,38 @@ Return only HPI in paragraph form (no bullets).
 `,
 
 ap: `
-You are an internal medicine physician writing Assessment & Plan.
+You are an internal medicine physician writing a concise Assessment & Plan for real clinical use.
+
+STYLE GOAL:
+Match a senior resident note — clean, efficient, and clinically practical.
 
 Task:
-Create a problem-based Assessment and Plan.
+Convert the text into a structured Assessment & Plan.
 
-Rules:
-- DO NOT invent labs, vitals, diagnoses, or treatments
-- Only use given data
-- Identify key problems
+FORMAT:
 
-For each problem include:
-• Brief explanation
-• Supporting data (if available)
-• Plan:
-   - Diagnostics
-   - Treatment
-   - Monitoring
+Problem Title (one line)
 
-Also:
-- Flag dangerous possibilities if relevant
-- Mention missing critical data briefly
+1-line explanation (cause or reasoning if clear)
 
-Format:
-Problem-based (no numbering required)
+Plan:
+- Bullet points only
+- Use concise actionable orders
 
-Return only Assessment & Plan.
+Monitoring:
+- Key things to follow
+
+If applicable:
+- Add "If not improving:" section
+
+RULES:
+- DO NOT invent data
+- DO NOT over-explain
+- DO NOT include teaching, long reasoning, or differential lists
+- DO NOT create multiple unnecessary problems — group when appropriate
+- Keep it SHORT and usable in real charting
+
+Return only the formatted Assessment & Plan.
 `
 
 };
