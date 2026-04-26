@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Medical AI Note Helper</title>
+
+  <script src="https://js.puter.com/v2/"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f7fb;
+      color: #1f2937;
+    }
+
+    header {
+      background: #111827;
+      color: white;
+      padding: 18px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 220px;
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid #d1d5db;
+      font-size: 16px;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+
+    textarea:focus {
+      outline: 2px solid #2563eb;
+      border-color: #2563eb;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    button {
+      border: none;
+      border-radius: 14px;
+      padding: 13px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      background: #2563eb;
+      color: white;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    .green {
+      background: #16a34a;
+    }
+
+    .green:hover {
+      background: #15803d;
+    }
+
+    .purple {
+      background: #7c3aed;
+    }
+
+    .purple:hover {
+      background: #6d28d9;
+    }
+
+    .orange {
+      background: #f97316;
+    }
+
+    .orange:hover {
+      background: #ea580c;
+    }
+
+    .gray {
+      background: #4b5563;
+    }
+
+    .gray:hover {
+      background: #374151;
+    }
+
+    .status {
+      font-size: 14px;
+      color: #6b7280;
+      margin-top: 8px;
+    }
+
+    .small-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .small-buttons button {
+      padding: 9px 12px;
+      font-size: 13px;
+      background: #e5e7eb;
+      color: #111827;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Medical AI Note Helper</h1>
+  </header>
+
+  <div class="container">
+
+    <div class="card">
+      <label for="inputText">Paste rough text here</label>
+      <textarea id="inputText" placeholder="Example: I called and spoke to mt sinai transfer center..."></textarea>
+
+      <div class="buttons">
+        <button onclick="runPreset('fixNote')">Fix Note</button>
+        <button class="green" onclick="runPreset('hpi')">Make HPI</button>
+        <button class="purple" onclick="runPreset('assessmentPlan')">Assessment & Plan</button>
+        <button class="orange" onclick="runPreset('hospitalCourse')">Hospital Course</button>
+        <button class="gray" onclick="runPreset('patientUpdate')">Patient Update</button>
+      </div>
+
+      <div id="status" class="status"></div>
+    </div>
+
+    <div class="card">
+      <label for="outputText">AI Output</label>
+      <textarea id="outputText" placeholder="Cleaned result will appear here..."></textarea>
+
+      <div class="small-buttons">
+        <button onclick="copyOutput()">Copy Output</button>
+        <button onclick="clearAll()">Clear</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const presets = {
+      fixNote: `
+You are helping with medical documentation.
+
+Task:
+Fix grammar, spelling, punctuation, clarity, and professional wording.
+
+Rules:
+- Preserve the original meaning.
+- Do not add new facts.
+- Do not remove important clinical information.
+- Correct obvious medical documentation wording errors.
+- Keep it concise and appropriate for a medical chart.
+- Return only the corrected note.
+`,
+
+      hpi: `
+You are helping create a medical HPI.
+
+Task:
+Convert the rough text into a clean HPI paragraph.
+
+Rules:
+- Use professional medical documentation style.
+- Do not invent facts.
+- Do not add unsupported negatives.
+- Preserve timeline and clinical details.
+- If details are unclear, keep wording neutral.
+- Return only the HPI.
+`,
+
+      assessmentPlan: `
+You are helping create an Assessment and Plan.
+
+Task:
+Create a problem-based Assessment and Plan from the provided rough text.
+
+Rules:
+- Do not invent diagnoses, labs, vitals, imaging, medications, or treatments.
+- Only use information provided.
+- Use clear problem headers.
+- Include concise medical reasoning when supported.
+- If information is insufficient, state what is missing briefly.
+- Return only the Assessment and Plan.
+`,
+
+      hospitalCourse: `
+You are helping write a hospital course.
+
+Task:
+Convert the provided text into a clean hospital course summary.
+
+Rules:
+- Keep chronological flow.
+- Use professional medical documentation language.
+- Do not invent facts.
+- Include treatments, consults, procedures, and clinical progress only if mentioned.
+- Return only the hospital course.
+`,
+
+      patientUpdate: `
+You are helping write a short patient/family update note.
+
+Task:
+Convert the rough text into a concise update note.
+
+Rules:
+- Mention who was contacted if provided.
+- Summarize what was discussed.
+- Use professional chart language.
+- Do not invent facts.
+- Return only the update note.
+`
+    };
+
+    async function runPreset(type) {
+      const input = document.getElementById("inputText").value.trim();
+      const output = document.getElementById("outputText");
+      const status = document.getElementById("status");
+
+      if (!input) {
+        status.textContent = "Please enter some text first.";
+        return;
+      }
+
+      status.textContent = "Working...";
+      output.value = "";
+
+      const prompt = `
+${presets[type]}
+
+TEXT:
+${input}
+`;
+
+      try {
+        const response = await puter.ai.chat(prompt, {
+          model: "gpt-5.4-nano",
+          temperature: 0.2
+        });
+
+        output.value =
+          response?.message?.content ||
+          response?.text ||
+          response ||
+          "No response returned.";
+
+        status.textContent = "Done.";
+      } catch (error) {
+        console.error(error);
+        status.textContent = "Error. Check console or Puter connection.";
+        output.value = "Something went wrong. Make sure Puter is loaded and internet is working.";
+      }
+    }
+
+    function copyOutput() {
+      const output = document.getElementById("outputText");
+      output.select();
+      document.execCommand("copy");
+      document.getElementById("status").textContent = "Output copied.";
+    }
+
+    function clearAll() {
+      document.getElementById("inputText").value = "";
+      document.getElementById("outputText").value = "";
+      document.getElementById("status").textContent = "";
+    }
+  </script>
+</body>
+</html>
