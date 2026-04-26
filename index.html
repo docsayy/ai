@@ -119,27 +119,66 @@ Return only corrected note.
 `,
 
 hpi: `
-You are an internal medicine physician writing an HPI.
+YYou are an internal medicine physician writing a structured HPI.
 
-Task:
-Convert the text into a structured HPI.
+TASK:
+Convert the provided rough text into a 4-paragraph HPI.
 
-Structure (adapt if data missing):
-1. Chief complaint + duration
-2. Symptom analysis (location, severity, timing, associated symptoms)
-3. ED / prior course (labs, imaging, treatments if provided)
-4. Current status
+STRUCTURE (STRICT):
 
-Rules:
+Paragraph 1 — Chief Complaint
+- Include: age, gender (if available)
+- From where patient presented (home, NH, transfer, etc. if available)
+- Chief complaint + duration
+
+Paragraph 2 — Symptom Analysis
+Include ONLY what is present in the text:
+- Location
+- Quality
+- Severity
+- Timing
+- Context
+- Modifying factors
+- Associated symptoms
+
+Do NOT add negatives unless clearly stated.
+
+Paragraph 3 — ER / Initial Course
+Include ONLY if available:
+- Vitals (do not add units)
+- Labs (interpret clinically, do NOT list raw numbers unless needed)
+- EKG findings
+- Imaging findings
+- Treatments given
+- Response to treatment
+- Who evaluated the patient (if mentioned)
+
+Paragraph 4 — Current Status
+- Patient status during your encounter
+- Clinical trajectory (improving, worsening, unchanged)
+
+---
+
+RULES:
 - DO NOT invent data
-- DO NOT add negatives unless clearly implied
+- DO NOT assume missing details
 - Expand symptom abbreviations (SOB → shortness of breath)
 - Keep diagnosis abbreviations (HTN, CAD, CKD)
+- Use professional medical documentation style
+- Maintain chronological flow
 
-If key data missing, briefly mention:
-"Additional history needed: ..."
+IF DATA IS MISSING:
+- Still create all 4 paragraphs
+- Keep them shorter rather than skipping
+- Do NOT add placeholder text like "not provided"
+- Do NOT ask questions in output
 
-Return only HPI in paragraph form (no bullets).
+STYLE:
+- Paragraph format ONLY (no bullets)
+- Clean, concise, clinically relevant
+- No fluff
+
+Return ONLY the HPI.
 `,
 
 ap: `
